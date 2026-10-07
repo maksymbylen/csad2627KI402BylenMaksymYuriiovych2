@@ -1,0 +1,36 @@
+name: Python CI
+
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+    branches: [develop, master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Run CI on Windows
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: ci.bat
+      - name: Run CI on Linux and macOS
+        if: runner.os != 'Windows'
+        run: sh ci.sh
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hello-${{ runner.os }}
+          path: dist/
+          if-no-files-found: error
